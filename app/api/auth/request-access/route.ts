@@ -67,6 +67,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Revisa los datos del formulario.' }, { status: 400 });
     }
 
+    const message = String((error as Error)?.message || '');
+    if (message.includes('Error validating datasource') || message.includes('PrismaClientInitializationError')) {
+      console.error('Error de base de datos en /auth/request-access:', error);
+      return NextResponse.json(
+        { error: 'Error de configuracion de base de datos. Revisa DATABASE_URL en el servidor.' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: 'Datos de solicitud invalidos.' }, { status: 400 });
   }
 }

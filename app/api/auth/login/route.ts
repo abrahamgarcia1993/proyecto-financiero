@@ -44,7 +44,16 @@ export async function POST(request: Request) {
         accountExpiresAt: user.accountExpiresAt
       }
     });
-  } catch {
+  } catch (error) {
+    const message = String((error as Error)?.message || '');
+    if (message.includes('Error validating datasource') || message.includes('PrismaClientInitializationError')) {
+      console.error('Error de base de datos en /auth/login:', error);
+      return NextResponse.json(
+        { error: 'Error de configuracion de base de datos. Revisa DATABASE_URL en el servidor.' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: 'Datos de inicio de sesion invalidos.' }, { status: 400 });
   }
 }
