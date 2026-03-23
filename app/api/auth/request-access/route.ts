@@ -31,6 +31,7 @@ export async function POST(request: Request) {
       }
     });
 
+    let notificationSent = true;
     try {
       await sendAccessRequestNotification({
         name: data.name,
@@ -39,10 +40,19 @@ export async function POST(request: Request) {
         financialLevel: data.financialLevel
       });
     } catch (notificationError) {
+      notificationSent = false;
       console.error('No se pudo enviar notificacion al correo del admin:', notificationError);
     }
 
-    return NextResponse.json({ id: data.id, status: data.status }, { status: 201 });
+    return NextResponse.json(
+      {
+        id: data.id,
+        status: data.status,
+        notificationSent,
+        warning: notificationSent ? undefined : 'Solicitud guardada, pero no se pudo enviar el correo al admin.'
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof ZodError) {
       const issue = error.issues[0];

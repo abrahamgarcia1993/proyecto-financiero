@@ -35,6 +35,9 @@ export async function PATCH(request: NextRequest) {
       }
     });
 
+    let tempPasswordSent = false;
+    let emailWarning: string | undefined;
+
     if (status === 'approved') {
       const tempPassword = generateTemporaryPassword();
       const passwordHash = await hashPassword(tempPassword);
@@ -72,10 +75,21 @@ export async function PATCH(request: NextRequest) {
         });
       }
 
-      await sendApprovedCredentialsEmail({ to: updated.email, tempPassword });
+      try {
+        await sendApprovedCredentialsEmail({ to: updated.email, tempPassword });
+        tempPasswordSent = true;
+      } catch (mailError) {
+        console.error('No se pudo enviar el correo de credenciales:', mailError);
+        tempPasswordSent = false;
+        emailWarning = 'Usuario aprobado, pero no se pudo enviar el correo de credenciales.';
+      }
     }
 
-    return NextResponse.json({ ...updated, tempPasswordSent: status === 'approved' });
+    return NextResponse.json({
+      ...updated,
+      tempPasswordSent: status === 'approved' ? tempPasswordSent : false,
+      warning: emailWarning
+    });
   } catch {
     return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
   }
