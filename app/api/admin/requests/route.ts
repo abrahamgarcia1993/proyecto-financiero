@@ -76,8 +76,11 @@ export async function PATCH(request: NextRequest) {
       }
 
       try {
-        await sendApprovedCredentialsEmail({ to: updated.email, tempPassword });
-        tempPasswordSent = true;
+        tempPasswordSent = await sendApprovedCredentialsEmail({ to: updated.email, tempPassword });
+        if (!tempPasswordSent) {
+          emailWarning =
+            'Usuario aprobado, pero el servidor no tiene SMTP configurado y no se pudo enviar el correo de credenciales.';
+        }
       } catch (mailError) {
         console.error('No se pudo enviar el correo de credenciales:', mailError);
         tempPasswordSent = false;

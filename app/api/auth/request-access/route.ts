@@ -31,9 +31,9 @@ export async function POST(request: Request) {
       }
     });
 
-    let notificationSent = true;
+    let notificationSent = false;
     try {
-      await sendAccessRequestNotification({
+      notificationSent = await sendAccessRequestNotification({
         name: data.name,
         email: data.email,
         reason: data.reason,

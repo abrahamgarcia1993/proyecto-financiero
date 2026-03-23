@@ -40,7 +40,7 @@ export async function sendAccessRequestNotification({
     console.log(
       `Nueva solicitud para ${adminEmail}: ${name} | ${email} | nivel=${financialLevel} | motivo=${reason}`
     );
-    return;
+    return false;
   }
 
   const transporter = await getTransporter();
@@ -50,6 +50,8 @@ export async function sendAccessRequestNotification({
     subject: 'Nueva solicitud de acceso - Control Financiero',
     text: `Has recibido una nueva solicitud.\n\nNombre: ${name}\nCorreo electronico: ${email}\nNivel financiero: ${financialLevel}\nMotivo: ${reason}`
   });
+
+  return true;
 }
 
 export async function sendInviteEmail({ to, inviteToken }: SendInviteInput) {
@@ -58,7 +60,7 @@ export async function sendInviteEmail({ to, inviteToken }: SendInviteInput) {
 
   if (!process.env.SMTP_HOST) {
     console.log(`Invitacion para ${to}: ${activationLink}`);
-    return;
+    return false;
   }
 
   const transporter = await getTransporter();
@@ -69,6 +71,8 @@ export async function sendInviteEmail({ to, inviteToken }: SendInviteInput) {
     subject: 'Enlace de activacion - Plataforma de Control Financiero',
     text: `Tu acceso fue aprobado. Activa tu cuenta aqui: ${activationLink}`
   });
+
+  return true;
 }
 
 export async function sendApprovedCredentialsEmail({ to, tempPassword }: SendApprovedCredentialsInput) {
@@ -76,7 +80,7 @@ export async function sendApprovedCredentialsEmail({ to, tempPassword }: SendApp
 
   if (!process.env.SMTP_HOST) {
     console.log(`Credenciales temporales para ${to}: ${tempPassword}`);
-    return;
+    return false;
   }
 
   const transporter = await getTransporter();
@@ -90,4 +94,6 @@ export async function sendApprovedCredentialsEmail({ to, tempPassword }: SendApp
       `Acceso: ${appUrl}\n\n` +
       `Por seguridad, cambia tu contrasena al iniciar sesion.`
   });
+
+  return true;
 }
