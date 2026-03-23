@@ -472,17 +472,35 @@ export default function DashboardPage() {
   const transactionsByCategory = useMemo(() => {
     const source = tx?.transactions || [];
     const map: Record<string, Array<TransactionResponse['transactions'][number]>> = {};
-    for (const category of spendingGoalCategories) {
+    const categories = Array.from(
+      new Set(
+        source
+          .filter((item) => item.type === 'expense')
+          .map((item) => item.category.toLowerCase())
+      )
+    );
+
+    for (const category of categories) {
       map[category] = source.filter(
         (item) => item.type === 'expense' && item.category.toLowerCase() === category
       );
     }
     return map;
-  }, [tx, spendingGoalCategories]);
+  }, [tx]);
 
   const incomeTransactions = useMemo(
     () => (tx?.transactions || []).filter((item) => item.type === 'income'),
     [tx]
+  );
+
+  const expenseTransactions = useMemo(
+    () => (tx?.transactions || []).filter((item) => item.type === 'expense'),
+    [tx]
+  );
+
+  const movementCategories = useMemo(
+    () => Array.from(new Set([...spendingGoalCategories, ...Object.keys(transactionsByCategory)])).sort(),
+    [spendingGoalCategories, transactionsByCategory]
   );
 
   const selectedPeriodHistoryItems = useMemo(
@@ -982,7 +1000,16 @@ export default function DashboardPage() {
             <p className="mt-1 text-xs text-emerald-700">Movimientos: {incomeTransactions.length}</p>
           </button>
 
-          {spendingGoalCategories.map((category) => {
+          <button
+            className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-left transition hover:bg-rose-100/70"
+            onClick={() => setMovementDetailSelection({ title: 'Gastos del periodo', items: expenseTransactions })}
+            type="button"
+          >
+            <p className="font-semibold text-rose-900">Gastos</p>
+            <p className="mt-1 text-xs text-rose-700">Movimientos: {expenseTransactions.length}</p>
+          </button>
+
+          {movementCategories.map((category) => {
             const items = transactionsByCategory[category] || [];
             return (
               <button
@@ -997,9 +1024,9 @@ export default function DashboardPage() {
             );
           })}
 
-          {spendingGoalCategories.length === 0 ? (
+          {movementCategories.length === 0 ? (
             <p className="text-sm text-slate-600 md:col-span-2 lg:col-span-3">
-              No hay objetivos mensuales por categoria activos todavia.
+              No hay gastos registrados por categoria en el periodo seleccionado.
             </p>
           ) : null}
         </div>
