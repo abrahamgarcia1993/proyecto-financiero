@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AccessRequest {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  occupation     String        @default("")
+  reason         String
+  financialLevel String
+  status         String        @default("pending")
+  inviteToken    String?       @unique
+  inviteExpires  DateTime?
+  reviewedById   String?
+  reviewedBy     User?         @relation("ReviewedRequests", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+  createdAt      DateTime      @default(now())
+}
+
+model User {
+  id              String          @id @default(cuid())
+  name            String
+  email           String          @unique
+  passwordHash    String
+  mustChangePassword Boolean      @default(false)
+  accountExpiresAt DateTime?
+  deletedAt       DateTime?
+  role            String          @default("user")
+  createdAt       DateTime        @default(now())
+  transactions    Transaction[]
+  goals           Goal[]
+  progress        UserProgress[]
+  reviewedRequest AccessRequest[] @relation("ReviewedRequests")
+  levelUnlocks    UserLevelUnlock[]
+  goalSnapshots   GoalMonthlySnapshot[]
+}
+
+model UserLevelUnlock {
+  id         String   @id @default(cuid())
+  userId     String
+  level      Int
+  unlockedBy String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, level])
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  type        String
+  amount      Float
+  category    String
+  date        DateTime
+  description String?
+  createdAt   DateTime        @default(now())
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model Goal {
+  id           String   @id @default(cuid())
+  userId       String
+  title        String
+  targetAmount Float
+  currentAmount Float   @default(0)
+  deadline     DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GoalMonthlySnapshot {
+  id           String   @id @default(cuid())
+  userId       String
+  year         Int
+  month        Int
+  title        String
+  targetAmount Float
+  currentAmount Float
+  achieved     Boolean
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year, month, title])
+  @@index([userId, year, month])
+}
+
+model Lesson {
+  id         String       @id @default(cuid())
+  title      String
+  level      Int
+  theory     String
+  example    String
+  createdAt  DateTime     @default(now())
+  exercises  Exercise[]
+  progress   UserProgress[]
+
+  @@unique([level, title])
+}
+
+model Exercise {
+  id           String   @id @default(cuid())
+  lessonId      String
+  type          String
+  instructions  String
+  createdAt     DateTime @default(now())
+  lesson        Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model UserProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  lessonId   String
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model MotivationQuote {
+  id        Int      @id @default(autoincrement())
+  dayOfYear Int      @unique
+  text      String
+  createdAt DateTime @default(now())
+}
