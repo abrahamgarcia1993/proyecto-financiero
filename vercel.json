@@ -1,14 +1,6 @@
 {
-  "buildCommand": "next build && prisma generate && prisma db push",
+  "buildCommand": "next build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "nodeVersion": "20.x",
-  "env": {
-    "JWT_SECRET": {
-      "description": "Clave secreta para JWT (mínimo 32 caracteres)"
-    },
-    "DATABASE_URL": {
-      "description": "URL de conexión a PostgreSQL (será creada automáticamente por Vercel Postgres)"
-    }
-  }
+  "nodeVersion": "20.x"
 }
